@@ -1,9 +1,5 @@
 #!/usr/bin/python3
 
-# todo:
-# - center font
-# - color tuple (floats?)
-
 import pygame, sys
 from pygame.locals import *
 from pygame import K_LEFT, K_RIGHT, K_DOWN, K_UP, K_ESCAPE, K_F5
@@ -16,10 +12,10 @@ from time import sleep
 tiles_x = tiles_y = 21
 tile_size = 20
 start_tiles = 6
-background_color = Color(0, 0, 0, 255)
-apple_color = Color(255, 0, 0, 255)
-snake_color = Color(0, 255, 0, 255)
-head_color = Color(0, 150, 0, 255)
+background_color = (0, 0, 0)
+apple_color = (255, 0, 0)
+snake_color = (0, 255, 0)
+head_color = (0, 150, 0)
 gameover_color = (255, 0, 0)
 score_color = (255, 255, 255)
 fps = 8
