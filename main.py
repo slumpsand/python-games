@@ -1,163 +1,132 @@
 #!/usr/bin/python3
 
-import pygame, sys, json, time
+# todo:
+# - center font
+# - color tuple (floats?)
+
+import pygame, sys
 from pygame.locals import *
-from math import ceil
+from pygame import K_LEFT, K_RIGHT, K_DOWN, K_UP, K_ESCAPE, K_F5
 from random import randint
+from time import sleep
 
-UP = 0
-RIGHT = 1
-DOWN = 2
-LEFT = 3
+[UP, RIGHT, DOWN, LEFT] = range(4)
 
-class Snake:
-    def __init__(self):
-        # initialize all constant variables
-        self.tiles_x = 20
-        self.tiles_y = 20
-        self.tile_size = 20
-        self.start_tiles = 6
-        self.background_color = Color(0, 0, 0, 255)
-        self.apple_color = Color(255, 0, 0, 255)
-        self.snake_color = Color(0, 255, 0, 255)
-        self.fps = 8
+# settings
+tiles_x = tiles_y = 21
+tile_size = 20
+start_tiles = 6
+background_color = Color(0, 0, 0, 255)
+apple_color = Color(255, 0, 0, 255)
+snake_color = Color(0, 255, 0, 255)
+head_color = Color(0, 150, 0, 255)
+gameover_color = (255, 0, 0)
+score_color = (255, 255, 255)
+fps = 8
+# end settings
 
-    def set_tiles(self, x, y):
-        self.tiles_x = x
-        self.tiles_y = y
-        return self
+screen_size = (tile_size * tiles_x, tile_size * tiles_y)
 
-    def set_tile_size(self, tile_size):
-        self.tile_size = tile_size
-        return self
+def init():
+    global apples, snake, is_alive, score, facing
 
-    def set_start_tiles(self, start_tiles):
-        self.start_tiles = start_tiles
-        return self
+    apples = []
+    facing = UP
+    is_alive = True
+    score = 0
 
-    def set_colors(self, back, snake, apple):
-        self.background_color = back
-        self.snake_color = snake
-        self.apple_color = apple
-        return self
+    mid = (round(tiles_x / 2), round(tiles_y / 2))
+    snake = [(mid[0], mid[1] + x) for x in range(start_tiles)]
 
-    def set_fps(self, fps):
-        self.fps = fps
-        return self
+    spawn_apple()
 
-    def _init(self):
-        # initialize variables
-        self.screen = (self.tiles_x * self.tile_size, self.tiles_y * self.tile_size)
-        self.snake = []
-        self.apples = []
-        self.dir = UP
-        self.is_alive = True
-        self.score = 0
+def quit():
+    pygame.display.iconify()
+    pygame.quit()
+    sys.exit()
 
-        # create the snake
-        mid = (ceil(self.tiles_x / 2), ceil(self.tiles_y / 2))
-        self.snake.extend((mid[0], mid[1] + i) for i in range(self.start_tiles))
+def render():
+    screen.fill(background_color)
 
-        # spawn the first apple
-        self._spawn_apple()
+    for (x, y) in apples: screen.fill(apple_color, Rect(x * tile_size, y * tile_size, tile_size, tile_size))
+    for (x, y) in snake[1:]: screen.fill(snake_color, Rect(x * tile_size, y * tile_size, tile_size, tile_size))
+    screen.fill(head_color, Rect(snake[0][0] * tile_size, snake[0][1] * tile_size, tile_size, tile_size))
 
-        # initialize pygame
-        pygame.init()
-        self.surface = pygame.display.set_mode(self.screen)
-        pygame.display.set_caption("Snake")
+    if not is_alive:
+        text = gameover_font.render("Game Over!", 1, gameover_color)
+        (_, _, x, y) = text.get_rect()
+        screen.blit(text, ((screen_size[0] - x) / 2, (screen_size[1] - y) / 2))
 
-        self.font = pygame.font.SysFont("monospace", 20)
-        self.gameover = pygame.font.SysFont("monospace", 60)
+    screen.blit(basic_font.render("Score: %d" % score, 1, score_color), (10, 10))
 
-    def _spawn_apple(self):
-        pos = (randint(0, self.tiles_x-1), randint(0, self.tiles_y-1))
-        if pos in self.snake: self._spawn_apple()
-        else: self.apples.append(pos)
+def update():
+    global apples, snake, is_alive, score, facing
 
-    def _render(self):
-        for event in self.events:
-            pass
+    for key in [e.key for e in events if e.type == KEYDOWN]:
+        if key == K_LEFT and facing != RIGHT: facing = LEFT
+        if key == K_RIGHT and facing != LEFT: facing = RIGHT
+        if key == K_DOWN and facing != UP: facing = DOWN
+        if key == K_UP and facing != DOWN: facing = UP
 
-        self.surface.fill(self.background_color)
-        for (x, y) in self.apples: self.surface.fill(self.apple_color, Rect(x*self.tile_size, y*self.tile_size, self.tile_size, self.tile_size))
-        for (x, y) in self.snake:  self.surface.fill(self.snake_color, Rect(x*self.tile_size, y*self.tile_size, self.tile_size, self.tile_size))
-
-        if not self.is_alive:
-            self.surface.blit(self.gameover.render("GAME OVER!", 1, (255, 0, 0)), (self.screen[0] / 2 - 175, self.screen[1] / 2 - 30))
-
-        self.surface.blit(self.font.render("Score: %d" % self.score, 1, (255, 255, 255)), (10, 10))
-
-    def _quit(self):
-        pygame.display.iconify()
-        pygame.quit()
-        sys.exit()
-
-    def _update(self):
-        for evt in self.events:
-            if evt.type == KEYDOWN:
-                if evt.key == pygame.K_LEFT and self.dir != RIGHT:
-                    self.dir = LEFT
-
-                if evt.key == pygame.K_RIGHT and self.dir != LEFT:
-                    self.dir = RIGHT
-
-                if evt.key == pygame.K_UP and self.dir != DOWN:
-                    self.dir = UP
-
-                if evt.key == pygame.K_DOWN and self.dir != UP:
-                    self.dir = DOWN
-
-                if evt.key == pygame.K_F5:
-                    self._init()
-                    return
-
-                if evt.key == pygame.K_ESCAPE:
-                    self._quit()
-
-        if not self.is_alive:
+        if key == K_ESCAPE: quit()
+        if key == K_F5:
+            init()
             return
 
-        front = self.snake[0]
+    if not is_alive: return
 
-        if self.dir == LEFT:
-            pos = (front[0]-1, front[1])
-            if pos[0] < 0: self.is_alive = False
-        if self.dir == RIGHT:
-            pos = (front[0]+1, front[1])
-            if pos[0] >= self.tiles_x: self.is_alive = False
-        if self.dir == UP:
-            pos = (front[0], front[1]-1)
-            if pos[1] < 0: self.is_alive = False
-        if self.dir == DOWN:
-            pos = (front[0], front[1]+1)
-            if pos[1] >= self.tiles_y: self.is_alive = False
+    (x, y) = snake[0]
 
-        has_apple = False
-        for i in range(len(self.apples)):
-            if self.apples[i] in self.snake:
-                has_apple = True
-                del self.apples[i]
-                self._spawn_apple()
-                self.score += 1
+    if facing == LEFT: pos = (x-1, y)
+    if facing == RIGHT: pos = (x+1, y)
+    if facing == UP: pos = (x, y-1)
+    if facing == DOWN: pos = (x, y+1)
 
-        if self.is_alive:
-            self.snake.insert(0, pos)
-            if not has_apple:
-                self.snake.pop()
+    if pos[0] < 0 or pos[0] >= tiles_x or pos[1] < 0 or pos[1] >= tiles_y or pos in snake:
+        is_alive = False
+        return
 
-    def run(self):
-        self._init()
+    snake.insert(0, pos)
 
-        while True:
-            self.events = pygame.event.get()
+    has_apple = False
+    for i in range(len(apples)):
+        if apples[i] in snake:
+            has_apple = True
+            del apples[i]
+            spawn_apple()
+            score += 1
 
-            if QUIT in [e.type for e in self.events]:
-                self._quit()
+    if not has_apple:
+        snake.pop()
 
-            self._update()
-            self._render()
-            pygame.display.update()
-            time.sleep(1 / self.fps)
+def spawn_apple():
+    global apples
+
+    pos = (randint(0, tiles_x - 1), randint(0, tiles_y - 1))
+    if pos in snake or pos in apples: spawn_apple()
+    else: apples.append(pos)
 
 if __name__ == "__main__":
-    Snake().run()
+    pygame.init()
+    screen = pygame.display.set_mode(screen_size)
+    pygame.display.set_caption("Snake")
+
+    basic_font = pygame.font.SysFont("Monospace", 20)
+    gameover_font = pygame.font.SysFont("Monospace", 60)
+
+    init()
+
+    should_stop = False
+    while not should_stop:
+        global events
+        events = pygame.event.get()
+
+        if QUIT in [e.type for e in events]:
+            quit()
+
+        # swap these two?
+        update()
+        render()
+
+        pygame.display.update()
+        sleep(1 / fps)
