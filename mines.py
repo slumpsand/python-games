@@ -26,7 +26,9 @@ def init():
 
     mouse_on = None
     flags = []
-    grid = [[0] * tiles_y] * tiles_x
+    grid = [[0 for _ in range(tiles_y)] for _ in range(tiles_x)]
+
+    render()
 
 def quit():
     pygame.display.iconify()
@@ -62,16 +64,20 @@ def update():
             init()
             return True
 
+    should_render = False
+
     for typ in [e.type for e in events]:
         if typ == MOUSEBUTTONDOWN:
             (x, y) = pygame.mouse.get_pos()
             mouse_on = get_field(x, y)
+            should_render = True
         elif typ == MOUSEBUTTONUP:
             (x, y) = pygame.mouse.get_pos()
             if get_field(x, y) == mouse_on: click(x, y)
             mouse_on = None
+            should_render = True
 
-    return True # return weither the screen must be rerendered
+    return should_render
 
 pygame.init()
 pygame.display.set_caption("Minesweeper")
