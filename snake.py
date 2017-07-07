@@ -50,7 +50,7 @@ def render():
 
     if not is_alive:
         text = gameover_font.render("Game Over!", 1, gameover_color)
-        (_, _, x, y) = text.get_rect()
+        (x, y) = text.get_size()
         screen.blit(text, ((screen_size[0] - x) / 2, (screen_size[1] - y) / 2))
 
     screen.blit(basic_font.render("Score: %d" % score, 1, score_color), (10, 10))
