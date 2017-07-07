@@ -6,12 +6,15 @@ from pygame import K_ESCAPE, K_F5
 from math import floor
 
 tiles_x = tiles_y = 20
-tile_size = 20
-spacing = 2
 background_color = (100, 100, 100)
 tile_color = (150, 150, 150)
 
-screen_size = (tiles_x * (tile_size + spacing) + spacing, tiles_y * (tile_size + spacing) + spacing)
+pygame.init()
+
+tile_image = pygame.image.load("img/mines_tile.png")
+tile_size = tile_image.get_size()[0]
+
+screen_size = (tiles_x * tile_size, tiles_y * tile_size)
 
 def init():
     global mouse_on
@@ -27,12 +30,10 @@ def render():
     screen.fill(background_color)
     for x in range(tiles_x):
         for y in range(tiles_y):
-            screen.fill(tile_color, Rect(x * (tile_size + spacing) + spacing, y * (tile_size + spacing) + spacing, tile_size, tile_size))
-
+            screen.blit(tile_image, (x * tile_size, y * tile_size))
 
 def get_field(x, y):
-    size = (tile_size + spacing)
-    return (floor((x - spacing) / size), floor((y - spacing) / size))
+    return (floor(x / tile_size), floor(y / tile_size))
 
 def update():
     global mouse_on
@@ -54,22 +55,20 @@ def update():
 
     return True # return weither the screen must be rerendered
 
-if __name__ == "__main__":
-    pygame.init()
-    screen = pygame.display.set_mode(screen_size)
-    pygame.display.set_caption("Minesweeper")
+screen = pygame.display.set_mode(screen_size)
+pygame.display.set_caption("Minesweeper")
 
-    init()
+init()
 
-    try:
-        while True:
-            global events
-            events = pygame.event.get()
+try:
+    while True:
+        global events
+        events = pygame.event.get()
 
-            if QUIT in [e.type for e in events]:
-                quit()
+        if QUIT in [e.type for e in events]:
+            quit()
 
-            if update(): render()
-            pygame.display.update()
-    except KeyboardInterrupt:
-        quit()
+        if update(): render()
+        pygame.display.update()
+except KeyboardInterrupt:
+    quit()
