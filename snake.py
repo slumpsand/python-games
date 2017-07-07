@@ -112,15 +112,13 @@ if __name__ == "__main__":
 
     init()
 
-    should_stop = False
-    while not should_stop:
+    while True:
         global events
         events = pygame.event.get()
 
         if QUIT in [e.type for e in events]:
             quit()
 
-        # swap these two?
         update()
         render()
 
