@@ -46,6 +46,11 @@ def render():
     # currently clicked field
     if mouse_on != None and grid[mouse_on[0]][mouse_on[1]] == 0:
         screen.fill(background_color, tile(mouse_on[0], mouse_on[1]))
+<<<<<<< HEAD
+=======
+
+    # todo: bombs if gameover
+>>>>>>> 5e0358cb786722c0dc049c0f7a8ec8cd18e1ed68
 
 def get_field(x, y):
     return (floor(x / tile_size), floor(y / tile_size))
@@ -68,12 +73,28 @@ def update():
             mouse_on = get_field(x, y)
         elif typ == MOUSEBUTTONUP:
             (x, y) = pygame.mouse.get_pos()
+<<<<<<< HEAD
             if get_field(x, y) == mouse_on: click(x, y)
+=======
+            if get_field(x, y) == mouse_on:
+                print("user clicked field %s" % str(mouse_on))
+>>>>>>> 5e0358cb786722c0dc049c0f7a8ec8cd18e1ed68
             mouse_on = None
 
     return True # return weither the screen must be rerendered
 
 pygame.init()
+<<<<<<< HEAD
+=======
+
+tile_images = pygame.image.load("img/mines_tiles.jpg")
+screen_size = (tiles_x * tile_size, tiles_y * tile_size)
+
+sprite_img = pygame.image.load("img/mines_tiles.jpg")
+sprites = load_sprites("img/mines_tiles.jpg", 4, 3, ["N", "F", "B", "C", "1", "2", "3", "4", "5", "6", "7", "8"])
+
+screen = pygame.display.set_mode(screen_size)
+>>>>>>> 5e0358cb786722c0dc049c0f7a8ec8cd18e1ed68
 pygame.display.set_caption("Minesweeper")
 
 sprite_img = pygame.image.load("img/mines_tiles.jpg")
