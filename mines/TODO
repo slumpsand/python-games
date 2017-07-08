@@ -1,3 +1,5 @@
+current:
+
 features:
 - knight's path
 - display bombs when game over
@@ -6,3 +8,5 @@ features:
 fixes:
 
 refactoring:
+- re-factorize that "clicked_bomb" shit
+- make the field 20x20 again or at least 16x16
