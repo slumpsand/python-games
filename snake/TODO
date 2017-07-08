@@ -1,0 +1,7 @@
+features:
+
+fixes:
+- buffered inputs (or put the timeout somewhere else)
+
+refactoring:
+- select a font and put it into 'res/' (don't rely on the system-font)

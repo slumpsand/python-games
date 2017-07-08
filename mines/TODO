@@ -1,0 +1,8 @@
+features:
+- knight's path
+- display bombs when game over
+- settings / redo button
+
+fixes:
+
+refactoring:

@@ -7,7 +7,7 @@ from math import floor
 
 tiles_x = tiles_y = 20
 background_color = (180, 180, 180)
-text_color = (255, 255, 255)
+text_color = { "bomb": (255, 0, 0), "common": (255, 255, 255) }
 tile_size = 16
 header_size = 40
 bomb_count = 20
@@ -26,10 +26,13 @@ def tile(x, y):
     return Rect(x * tile_size, y * tile_size + header_size, tile_size, tile_size)
 
 def get_field(pos):
-    return (floor(pos[0] / tile_size), floor((pos[1] - header_size) / tile_size))
+    x, y = floor(pos[0] / tile_size), floor((pos[1] - header_size) / tile_size)
+    if x < 0 or y < 0 or x >= tiles_x or y >= tiles_y:
+        return None
+    return x, y
 
 def init():
-    global mouse_on, flags, grid
+    global mouse_on, grid, flags
 
     mouse_on = None
     flags = []
@@ -45,7 +48,7 @@ def quit():
 def render():
     # header
     screen.fill(background_color, Rect(0, 0, screen_size[0], header_size))
-    text = bold_font.render("%d / %d" % (len(flags), bomb_count), 4, text_color)
+    text = digit_font.render("%d / %d" % (len(flags), bomb_count), 4, text_color["bomb"])
     (text_x, text_y) = text.get_size()
     screen.blit(text, ((screen_size[0] - text_x) / 2, (header_size - text_y) / 2))
 
@@ -63,7 +66,19 @@ def render():
         screen.fill(background_color, tile(mouse_on[0], mouse_on[1]))
 
 def click(pos, is_left):
-    print("%s mouse button at (%d, %d)" % ("left" if is_left else "right", pos[0], pos[1]))
+    if pos == None:
+        return
+
+    if is_left:
+        pass
+    else:
+        if grid[pos[0]][pos[1]] in [0, -1]:
+            if grid[pos[0]][pos[1]] == -1:
+                flags.remove(pos)
+                grid[pos[0]][pos[1]] = 0
+            else:
+                flags.append(pos)
+                grid[pos[0]][pos[1]] = -1
 
 def update():
     global mouse_on
@@ -92,10 +107,9 @@ def update():
 pygame.init()
 pygame.display.set_caption("Minesweeper")
 
-bold_font = pygame.font.SysFont("Ubuntu", 18, True)
+digit_font = pygame.font.Font("res/digit-font.ttf", 24)
 
-sprite_img = pygame.image.load("img/mines_tiles.jpg")
-sprites = load_sprites("img/mines_tiles.jpg", 4, 3, ["N", "F", "B", "C", "1", "2", "3", "4", "5", "6", "7", "8"], 12)
+sprites = load_sprites("res/tiles.jpg", 4, 3, ["N", "F", "B", "C", "1", "2", "3", "4", "5", "6", "7", "8"], 12)
 
 screen_size = (tiles_x * tile_size, tiles_y * tile_size + header_size)
 screen = pygame.display.set_mode(screen_size)
