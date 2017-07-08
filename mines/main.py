@@ -6,7 +6,7 @@ from pygame import K_ESCAPE, K_F5
 from math import floor
 from random import randint
 
-tiles_x = tiles_y = 10
+tiles_x = tiles_y = 20
 background_color = (180, 180, 180)
 colors = { "text_bomb": (255, 0, 0), "win_overlay": (0, 255, 0, 160), "lose_overlay": (255, 0, 0, 160) }
 tile_size = 16
@@ -43,11 +43,11 @@ def place_bombs():
         if not b in bombs: bombs.append(b)
 
 def init():
-    global mouse_on, grid, flags, game_state, clicked_bomb
+    global mouse_on, grid, flags, game_state, clicked
 
     mouse_on = None
     game_state = RUNNING
-    clicked_bomb = False
+    clicked = False
     flags = []
     grid = [[0 for _ in range(tiles_y)] for _ in range(tiles_x)]
     place_bombs()
@@ -69,9 +69,10 @@ def render():
     # all flags / normal / number fields
     for x, y in itertools.product(range(tiles_x), range(tiles_y)):
         n = grid[x][y]
-        if n == 0: img = "N"
         if n in range(1, 9): img = str(n)
+        if n == 0: img = "N"
         if n == -1: img = "F"
+        if n == -3: img = "C"
 
         screen.blit(sprites[img], (x * tile_size, y * tile_size + header_size))
 
@@ -86,8 +87,27 @@ def render():
         overlay.set_alpha(c[3])
         screen.blit(overlay, (0, header_size))
 
+def unwrap(x, y):
+    global clicked
+    clicked = True
+
+    in_range = [(a,b) for (a,b) in itertools.product(range(x-1, x+2), range(y-1, y+2)) if a != x or b != y]
+
+    # count the bombs in range
+    count = 0
+    for bx,by in in_range:
+        if (bx,by) in bombs: count += 1
+
+    if count == 0:
+        grid[x][y] = -3
+
+        for px,py in in_range:
+            if grid[px][py] == 0: unwrap(px, py)
+    else:
+        grid[x][y] = count
+
 def click(pos, is_left):
-    global game_state, clicked_bomb
+    global game_state, clicked
 
     if pos == None:
         return
@@ -95,7 +115,9 @@ def click(pos, is_left):
     if is_left:
         if pos in bombs:
             game_state = LOSE
-            clicked_bomb = True
+            clicked = True
+        else:
+            unwrap(pos[0], pos[1])
     else:
         if grid[pos[0]][pos[1]] in [0, -1]:
             if grid[pos[0]][pos[1]] == -1:
@@ -106,7 +128,7 @@ def click(pos, is_left):
                 grid[pos[0]][pos[1]] = -1
 
 def update():
-    global mouse_on, game_state, clicked_bomb
+    global mouse_on, game_state, clicked
 
     should_render = False
 
@@ -120,9 +142,9 @@ def update():
             init()
             return True
 
-    if clicked_bomb:
+    if clicked:
         should_render = True
-        clicked_bomb = False
+        clicked = False
 
     if game_state != RUNNING:
         return should_render

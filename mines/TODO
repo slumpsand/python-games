@@ -1,4 +1,5 @@
 current:
+- unwrap doesn't work if it's empty
 
 features:
 - knight's path
@@ -8,5 +9,3 @@ features:
 fixes:
 
 refactoring:
-- re-factorize that "clicked_bomb" shit
-- make the field 20x20 again or at least 16x16
