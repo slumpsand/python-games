@@ -8,21 +8,21 @@ from random import randint
 
 tiles_x = tiles_y = 20
 background_color = (180, 180, 180)
-colors = { "text_bomb": (255, 0, 0), "win_overlay": (0, 255, 0, 160), "lose_overlay": (255, 0, 0, 160) }
+colors = { "text_bomb": (255, 0, 0), "win_overlay": (0, 255, 0, 100), "lose_overlay": (255, 0, 0, 100), "boom": (255, 0, 0) }
 tile_size = 16
 header_size = 40
 bomb_count = 20
 
 [RUNNING, WIN, LOSE] = range(3)
 
-def load_sprites(path, xtiles, ytiles, names, count):
+def load_sprites(path, xtiles, ytiles, names):
     sprite_img = pygame.transform.scale(pygame.image.load(path), (tile_size * xtiles, tile_size * ytiles))
     sprites = {}
     for y, x in itertools.product(range(ytiles), range(xtiles)):
         sp = pygame.Surface((tile_size, tile_size))
         sp.blit(sprite_img, (0, 0), (x*tile_size, y*tile_size, tile_size, tile_size))
         sprites[names[xtiles*y + x]] = sp
-        if len(sprites) == count: break
+        if len(sprites) == len(names): break
     return sprites
 
 def tile(x, y):
@@ -69,10 +69,14 @@ def render():
     # all flags / normal / number fields
     for x, y in itertools.product(range(tiles_x), range(tiles_y)):
         n = grid[x][y]
+
         if n in range(1, 9): img = str(n)
         if n == 0: img = "N"
         if n == -1: img = "F"
+        if n == -2: img = "B"
         if n == -3: img = "C"
+        if n == -4: img = "BOOM"
+        if n == -5: img = "X"
 
         screen.blit(sprites[img], (x * tile_size, y * tile_size + header_size))
 
@@ -87,11 +91,29 @@ def render():
         overlay.set_alpha(c[3])
         screen.blit(overlay, (0, header_size))
 
+def solve_all():
+    for x,y in itertools.product(range(tiles_x), range(tiles_y)):
+        if (x, y) in bombs:
+            grid[x][y] = -2
+            continue
+
+        count = 0
+        for b in [(a,b) for (a,b) in itertools.product(range(x-1, x+2), range(y-1, y+2)) if (a != x or b != y) and a >= 0 and b >= 0 and a < tiles_x and b < tiles_y]:
+            if b in bombs: count += 1
+
+        grid[x][y] = -3 if count == 0 else count
+
+def show_bombs():
+    for x,y in itertools.product(range(tiles_x), range(tiles_y)):
+        if (x, y) in bombs:
+            grid[x][y] = -2
+
 def unwrap(x, y):
     global clicked
     clicked = True
 
-    in_range = [(a,b) for (a,b) in itertools.product(range(x-1, x+2), range(y-1, y+2)) if a != x or b != y]
+    if (x, y) in bombs: return
+    in_range = [(a,b) for (a,b) in itertools.product(range(x-1, x+2), range(y-1, y+2)) if (a != x or b != y) and a >= 0 and b >= 0 and a < tiles_x and b < tiles_y]
 
     # count the bombs in range
     count = 0
@@ -101,7 +123,7 @@ def unwrap(x, y):
     if count == 0:
         grid[x][y] = -3
 
-        for px,py in in_range:
+        for (px,py) in in_range:
             if grid[px][py] == 0: unwrap(px, py)
     else:
         grid[x][y] = count
@@ -116,6 +138,8 @@ def click(pos, is_left):
         if pos in bombs:
             game_state = LOSE
             clicked = True
+            show_bombs()
+            grid[pos[0]][pos[1]] = -4
         else:
             unwrap(pos[0], pos[1])
     else:
@@ -133,6 +157,7 @@ def update():
     should_render = False
 
     if sorted(bombs) == sorted(flags) and game_state == RUNNING:
+        solve_all()
         game_state = WIN
         should_render = True
 
@@ -167,7 +192,7 @@ pygame.display.set_caption("Minesweeper")
 
 digit_font = pygame.font.Font("res/digit-font.ttf", 24)
 
-sprites = load_sprites("res/tiles.jpg", 4, 3, ["N", "F", "B", "C", "1", "2", "3", "4", "5", "6", "7", "8"], 12)
+sprites = load_sprites("res/tiles.jpg", 4, 4, ["N", "F", "B", "C", "1", "2", "3", "4", "5", "6", "7", "8", "BOOM", "X"])
 
 screen_size = (tiles_x * tile_size, tiles_y * tile_size + header_size)
 screen = pygame.display.set_mode(screen_size)

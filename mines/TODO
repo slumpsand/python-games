@@ -1,5 +1,5 @@
 current:
-- unwrap doesn't work if it's empty
+- make a win() function, that unwraps all remaining tiles and shows the bombs
 
 features:
 - knight's path
