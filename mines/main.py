@@ -8,7 +8,7 @@ from random import randint
 
 tiles_x = tiles_y = 20
 background_color = (180, 180, 180)
-colors = { "text_bomb": (255, 0, 0), "win_overlay": (0, 255, 0, 100), "lose_overlay": (255, 0, 0, 100), "boom": (255, 0, 0) }
+colors = { "text_bomb": (255, 0, 0) }
 tile_size = 16
 header_size = 40
 bomb_count = 20
@@ -84,13 +84,6 @@ def render():
     if mouse_on != None and grid[mouse_on[0]][mouse_on[1]] == 0:
         screen.fill(background_color, tile(mouse_on[0], mouse_on[1]))
 
-    if game_state in [WIN, LOSE]:
-        c = colors["win_overlay"] if game_state == WIN else colors["lose_overlay"]
-        overlay = pygame.Surface((screen_size[0], screen_size[1] - header_size))
-        overlay.fill((c[0], c[1], c[2]))
-        overlay.set_alpha(c[3])
-        screen.blit(overlay, (0, header_size))
-
 def solve_all():
     for x,y in itertools.product(range(tiles_x), range(tiles_y)):
         if (x, y) in bombs:
@@ -107,6 +100,10 @@ def show_bombs():
     for x,y in itertools.product(range(tiles_x), range(tiles_y)):
         if (x, y) in bombs:
             grid[x][y] = -2
+
+    for (x,y) in flags:
+        if not (x,y) in bombs:
+            grid[x][y] = -5
 
 def unwrap(x, y):
     global clicked
