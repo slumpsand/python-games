@@ -6,6 +6,18 @@ features:
 - global high-score
 
 fixes:
+- recompute if the first click is a bomb
+- precompute the numbers (after the first click?)
+- stop the timer (right now i am just not calling render anymore)
+- separate update loop for the settings-menu
+- put the other stuff into init() (because of the settings-menu)
 
 refactoring:
-- re-factorize everything (first make everything work)
+- put that gigantic iterator into a separate function
+- I think there is a few places where I used get_rect() because i
+  didn't know that get_size(), get_width() and get_height() existed.
+- make bigger sprites for the buttons (don't just scale them up)
+- rename the sprites (not just single characters)
+- make the settings menu a new class (and put it into another module?)
+- put the settings into a new module (config.py) then use
+  'import * from config'.

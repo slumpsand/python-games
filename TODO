@@ -1,0 +1,3 @@
+refactoring
+- put all games together and make them classes
+- put some helper functions into a seperate module

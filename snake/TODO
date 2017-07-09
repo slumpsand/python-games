@@ -1,4 +1,5 @@
 features:
+- list the 'input' buttons
 
 fixes:
 - buffered inputs (or put the timeout somewhere else)
