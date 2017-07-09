@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import pygame, sys, itertools
+import pygame, sys, itertools, time
 from pygame.locals import *
 from pygame import K_ESCAPE, K_F5
 from math import floor
@@ -43,14 +43,14 @@ def place_bombs():
         if not b in bombs: bombs.append(b)
 
 def init():
-    global mouse_on, grid, flags, game_state, clicked
+    global mouse_on, grid, flags, game_state, clicked, start_time
 
     mouse_on = None
     game_state = RUNNING
-    clicked = False
     flags = []
     grid = [[0 for _ in range(tiles_y)] for _ in range(tiles_x)]
     place_bombs()
+    start_time = time.time()
 
     render()
 
@@ -59,12 +59,26 @@ def quit():
     pygame.quit()
     sys.exit()
 
+def get_time():
+    diff = time.time() - start_time
+    return floor(diff / 60), floor(diff % 60)
+
+def render_header():
+    screen.fill(background_color, Rect(0, 0, screen_size[0], header_size))
+
+    div_text   = digit_font.render("-", 4, colors["text_bomb"])
+    bombs_text = digit_font.render("%02d/%02d" % (len(flags), bomb_count), 4, colors["text_bomb"])
+    time_text  = digit_font.render("%02d:%02d" % get_time(), 4, colors["text_bomb"])
+
+    center_x, center_y = (screen_size[0] / 2, header_size / 2)
+
+    screen.blit(div_text, (center_x - div_text.get_width() / 2, center_y - div_text.get_height() / 2))
+    screen.blit(bombs_text, (center_x - bombs_text.get_width() - 10, center_y - bombs_text.get_height() / 2))
+    screen.blit(time_text, (center_x + 10, center_y - time_text.get_height() / 2))
+
 def render():
     # header
-    screen.fill(background_color, Rect(0, 0, screen_size[0], header_size))
-    text = digit_font.render("%d / %d" % (len(flags), bomb_count), 4, colors["text_bomb"])
-    text_x, text_y = text.get_size()
-    screen.blit(text, ((screen_size[0] - text_x) / 2, (header_size - text_y) / 2))
+    if game_state == RUNNING: render_header()
 
     # all flags / normal / number fields
     for x, y in itertools.product(range(tiles_x), range(tiles_y)):
@@ -106,9 +120,6 @@ def show_bombs():
             grid[x][y] = -5
 
 def unwrap(x, y):
-    global clicked
-    clicked = True
-
     if (x, y) in bombs: return
     in_range = [(a,b) for (a,b) in itertools.product(range(x-1, x+2), range(y-1, y+2)) if (a != x or b != y) and a >= 0 and b >= 0 and a < tiles_x and b < tiles_y]
 
@@ -126,7 +137,7 @@ def unwrap(x, y):
         grid[x][y] = count
 
 def click(pos, is_left):
-    global game_state, clicked
+    global game_state
 
     if pos == None:
         return
@@ -134,7 +145,6 @@ def click(pos, is_left):
     if is_left:
         if pos in bombs:
             game_state = LOSE
-            clicked = True
             show_bombs()
             grid[pos[0]][pos[1]] = -4
         else:
@@ -149,40 +159,29 @@ def click(pos, is_left):
                 grid[pos[0]][pos[1]] = -1
 
 def update():
-    global mouse_on, game_state, clicked
-
-    should_render = False
+    global mouse_on, game_state
 
     if sorted(bombs) == sorted(flags) and game_state == RUNNING:
         solve_all()
         game_state = WIN
-        should_render = True
 
     for key in [e.key for e in events if e.type == KEYDOWN]:
         if key == K_ESCAPE: quit()
         if key == K_F5:
             init()
-            return True
-
-    if clicked:
-        should_render = True
-        clicked = False
+            return
 
     if game_state != RUNNING:
-        return should_render
+        return
 
     for evt in events:
         curr_mouse_pos = get_field(pygame.mouse.get_pos())
 
         if evt.type == MOUSEBUTTONDOWN:
             mouse_on = curr_mouse_pos
-            should_render = True
         elif evt.type == MOUSEBUTTONUP:
             if curr_mouse_pos == mouse_on and evt.button in [1, 3]: click(curr_mouse_pos, evt.button == 1)
             mouse_on = None
-            should_render = True
-
-    return should_render
 
 pygame.init()
 pygame.display.set_caption("Minesweeper")
@@ -190,6 +189,9 @@ pygame.display.set_caption("Minesweeper")
 digit_font = pygame.font.Font("res/digit-font.ttf", 24)
 
 sprites = load_sprites("res/tiles.jpg", 4, 4, ["N", "F", "B", "C", "1", "2", "3", "4", "5", "6", "7", "8", "BOOM", "X"])
+
+text_sizes = {"bombs": digit_font.render("00/00", 4, (0, 0, 0)).get_size(), "time": digit_font.render("00:00", 4, (0, 0, 0)).get_size() }
+
 
 screen_size = (tiles_x * tile_size, tiles_y * tile_size + header_size)
 screen = pygame.display.set_mode(screen_size)
@@ -204,7 +206,9 @@ try:
         if QUIT in [e.type for e in events]:
             quit()
 
-        if update(): render()
+        update()
+        render()
+
         pygame.display.update()
 except KeyboardInterrupt:
     quit()
