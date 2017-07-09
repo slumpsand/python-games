@@ -2,9 +2,10 @@ current:
 
 features:
 - knight's path
-- display bombs when game over
 - create settings menu
+- global high-score
 
 fixes:
 
 refactoring:
+- re-factorize everything (first make everything work)
