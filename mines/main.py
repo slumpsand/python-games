@@ -16,13 +16,17 @@ bomb_count = 20
 [RUNNING, WIN, LOSE] = range(3)
 
 def load_sprites(path, xtiles, ytiles, names):
-    sprite_img = pygame.transform.scale(pygame.image.load(path), (tile_size * xtiles, tile_size * ytiles))
+    sprite_img = pygame.image.load(path)
     sprites = {}
     for y, x in itertools.product(range(ytiles), range(xtiles)):
         sp = pygame.Surface((tile_size, tile_size))
         sp.blit(sprite_img, (0, 0), (x*tile_size, y*tile_size, tile_size, tile_size))
         sprites[names[xtiles*y + x]] = sp
         if len(sprites) == len(names): break
+
+    sprites["REDO"] = pygame.transform.scale(sprites["REDO"], (tile_size * 2, tile_size * 2))
+    sprites["SETTINGS"] = pygame.transform.scale(sprites["SETTINGS"], (tile_size * 2, tile_size * 2))
+
     return sprites
 
 def tile(x, y):
@@ -64,6 +68,7 @@ def get_time():
     return floor(diff / 60), floor(diff % 60)
 
 def render_header():
+    # draw the background
     screen.fill(background_color, Rect(0, 0, screen_size[0], header_size))
 
     div_text   = digit_font.render("-", 4, colors["text_bomb"])
@@ -72,9 +77,14 @@ def render_header():
 
     center_x, center_y = (screen_size[0] / 2, header_size / 2)
 
+    # draw the text
     screen.blit(div_text, (center_x - div_text.get_width() / 2, center_y - div_text.get_height() / 2))
     screen.blit(bombs_text, (center_x - bombs_text.get_width() - 10, center_y - bombs_text.get_height() / 2))
     screen.blit(time_text, (center_x + 10, center_y - time_text.get_height() / 2))
+
+    # draw the buttons
+    screen.blit(sprites["REDO"], (screen_size[0] - 4 - 32, 4))
+    screen.blit(sprites["SETTINGS"], (4, 4))
 
 def render():
     # header
@@ -188,7 +198,7 @@ pygame.display.set_caption("Minesweeper")
 
 digit_font = pygame.font.Font("res/digit-font.ttf", 24)
 
-sprites = load_sprites("res/tiles.jpg", 4, 4, ["N", "F", "B", "C", "1", "2", "3", "4", "5", "6", "7", "8", "BOOM", "X"])
+sprites = load_sprites("res/tiles.png", 4, 4, ["N", "F", "B", "C", "1", "2", "3", "4", "5", "6", "7", "8", "BOOM", "X", "REDO", "SETTINGS"])
 
 text_sizes = {"bombs": digit_font.render("00/00", 4, (0, 0, 0)).get_size(), "time": digit_font.render("00:00", 4, (0, 0, 0)).get_size() }
 
