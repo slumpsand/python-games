@@ -1,10 +1,9 @@
 current:
-- make a win() function, that unwraps all remaining tiles and shows the bombs
 
 features:
 - knight's path
 - display bombs when game over
-- settings / redo button
+- create settings menu
 
 fixes:
 

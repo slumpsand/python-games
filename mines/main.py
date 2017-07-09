@@ -168,6 +168,21 @@ def click(pos, is_left):
                 flags.append(pos)
                 grid[pos[0]][pos[1]] = -1
 
+def open_settings_menu():
+    pass
+
+def check_button_press():
+    x,y = pygame.mouse.get_pos()
+
+    if x > 4 and x < 32 + 4 and y > 4 and y < 32 + 4: open_settings_menu()
+
+    x = screen_size[0] - x
+    if x > 4 and x < 32 + 4 and y > 4 and y < 32 + 4:
+        return True
+    return False
+
+    # (screen_size[0] - 4 - 32, 4)
+
 def update():
     global mouse_on, game_state
 
@@ -192,6 +207,9 @@ def update():
         elif evt.type == MOUSEBUTTONUP:
             if curr_mouse_pos == mouse_on and evt.button in [1, 3]: click(curr_mouse_pos, evt.button == 1)
             mouse_on = None
+            if check_button_press():
+                init()
+                return
 
 pygame.init()
 pygame.display.set_caption("Minesweeper")
