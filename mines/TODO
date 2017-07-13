@@ -21,3 +21,5 @@ refactoring:
 - make the settings menu a new class (and put it into another module?)
 - put the settings into a new module (config.py) then use
   'import * from config'.
+- put fonts into config (or helper)
+- use my buttons module for the redo / settings button
